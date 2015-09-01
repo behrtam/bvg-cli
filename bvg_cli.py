@@ -1,10 +1,10 @@
 import sys
 import requests
+
 from lxml import html
 
 
 BVG_URL = 'http://mobil.bvg.de/Fahrinfo/bin/stboard.bin/dox?'
-# https://fahrinfo.bvg.de/Fahrinfo/bin/stboard.bin/dox?input=9079201&start=yes
 
 
 def request_station_ids(station_name):
@@ -17,7 +17,7 @@ def request_station_ids(station_name):
     and id. The status flag can be True or False if there are network problems.
     '''
 
-    r = requests.get(BVG_URL, data={'input' : station_name})
+    r = requests.get(BVG_URL, data={'input': station_name})
 
     # network
     if r.status_code != 200:
@@ -33,7 +33,7 @@ def request_station_ids(station_name):
             station_name = station.text.strip()
             # TODO: clean up direct list access
             station_id = station.get("href").split('&')[1].split('=')[1]
-            data.append((station_name,station_id))
+            data.append((station_name, station_id))
         return data, True
 
     # one station
@@ -49,8 +49,8 @@ def request_departures(station_id):
     Return a tuple (data, ok). Data holdes the <departures> with time, line and
     destination. The status flag can be True or False if there are network problems.
     '''
-    payload = {'input' : station_id, 'start' : 'yes' }
-    r = requests.get(BVG_URL, params= payload)
+    payload = {'input': station_id, 'start': 'yes'}
+    r = requests.get(BVG_URL, params=payload)
 
     # network
     if r.status_code != 200:
@@ -70,7 +70,7 @@ def show_usage():
 
 
 if __name__ == '__main__':
-    '''Rudimentary CLI capabilities ...'''
+    ''' Rudimentary CLI capabilities ...'''
 
     if len(sys.argv) < 3 or sys.argv[1] != '--station':
         show_usage()
@@ -87,9 +87,10 @@ if __name__ == '__main__':
     if len(stations) > 1:
         for i, (name, _) in enumerate(stations, start=1):
             print('[{}] {}'.format(i, name))
-        
+
         while 'do-loop':
-            user_response = input('Which station [1-{}] did you mean? '.format(len(stations)))
+            user_response = input('Which station [1-{}] did you mean? '.format(
+                len(stations)))
             if user_response.isdigit and 0 < int(user_response) <= len(stations):
                 station_id = int(user_response) - 1
                 break
@@ -101,7 +102,7 @@ if __name__ == '__main__':
         print('Check your network. BVG website migth also be down.')
 
     print('\n# Next departures at', station_name)
-    print('{:8}{:10}{}'.format('Time','Line','Destination'))
-    print('-'*50)
+    print('{:8}{:10}{}'.format('Time', 'Line', 'Destination'))
+    print('-' * 50)
     for info in departures:
         print('{:8}{:10}{}'.format(*info))
