@@ -1,3 +1,4 @@
+import sys
 import requests
 from lxml import html
 
@@ -62,3 +63,45 @@ def request_departures(station_id):
         cells = tuple(e for e in row.text_content().split('\n') if e)
         data.append(cells)
     return data, True
+
+
+def show_usage():
+    print('bvg_cli.py --station NAME')
+
+
+if __name__ == '__main__':
+    '''Rudimentary CLI capabilities ...'''
+
+    if len(sys.argv) < 3 or sys.argv[1] != '--station':
+        show_usage()
+        sys.exit(1)
+
+    stations, ok = request_station_ids(sys.argv[2])
+
+    if not ok:
+        print('Check your network. BVG website migth also be down.')
+        sys.exit(1)
+
+    station_id = 0
+
+    if len(stations) > 1:
+        for i, (name, _) in enumerate(stations, start=1):
+            print('[{}] {}'.format(i, name))
+        
+        while 'do-loop':
+            user_response = input('Which station [1-{}] did you mean? '.format(len(stations)))
+            if user_response.isdigit and 0 < int(user_response) <= len(stations):
+                station_id = int(user_response) - 1
+                break
+
+    station_name, station_id = stations[station_id]
+    departures, ok = request_departures(station_id)
+
+    if not ok:
+        print('Check your network. BVG website migth also be down.')
+
+    print('\n# Next departures at', station_name)
+    print('{:8}{:10}{}'.format('Time','Line','Destination'))
+    print('-'*50)
+    for info in departures:
+        print('{:8}{:10}{}'.format(*info))
