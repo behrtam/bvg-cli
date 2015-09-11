@@ -67,7 +67,12 @@ def request_departures(station_id, limit):
 
 
 def show_usage():
-    print('bvg_cli.py --station NAME [--limit N]')
+    print('usage: bvg_cli.py --station NAME [--limit N]\n\n'
+          'A command line tool for the public transport of Berlin.\n\n'
+          'arguments:\n'
+          '--station NAME       name of your departure station\n\n'
+          'optional arguments:\n'
+          '--limit N            limit the number of responses (default 10)')
 
 
 if __name__ == '__main__':
