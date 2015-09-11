@@ -43,13 +43,14 @@ def request_station_ids(station_name):
     return (station_name, station_id), True
 
 
-def request_departures(station_id):
+def request_departures(station_id, limit):
+    print(limit)
     ''' Requests the departure times for the provided station id.
 
     Return a tuple (data, ok). Data holdes the <departures> with time, line and
     destination. The status flag can be True or False if there are network problems.
     '''
-    payload = {'input': station_id, 'start': 'yes'}
+    payload = {'input': station_id, 'maxJourneys': limit, 'start': 'yes'}
     r = requests.get(BVG_URL, params=payload)
 
     # network
@@ -66,7 +67,7 @@ def request_departures(station_id):
 
 
 def show_usage():
-    print('bvg_cli.py --station NAME')
+    print('bvg_cli.py --station NAME [--limit N]')
 
 
 if __name__ == '__main__':
@@ -75,6 +76,11 @@ if __name__ == '__main__':
     if len(sys.argv) < 3 or sys.argv[1] != '--station':
         show_usage()
         sys.exit(1)
+
+    limit = '10'
+
+    if len(sys.argv) >= 5 and sys.argv[3] == '--limit':
+        limit = sys.argv[4]
 
     stations, ok = request_station_ids(sys.argv[2])
 
@@ -96,7 +102,7 @@ if __name__ == '__main__':
                 break
 
     station_name, station_id = stations[station_id]
-    departures, ok = request_departures(station_id)
+    departures, ok = request_departures(station_id, limit)
 
     if not ok:
         print('Check your network. BVG website migth also be down.')
