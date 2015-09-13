@@ -40,11 +40,10 @@ def request_station_ids(station_name):
     # TODO: clean up direct list access
     station_name = tree.cssselect('span.desc strong')[0].text
     station_id = tree.cssselect('p.links a')[0].get('href').split('&')[1].split('=')[1]
-    return (station_name, station_id), True
+    return ((station_name, station_id),), True
 
 
 def request_departures(station_id, limit):
-    print(limit)
     ''' Requests the departure times for the provided station id.
 
     Return a tuple (data, ok). Data holdes the <departures> with time, line and
