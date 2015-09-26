@@ -7,6 +7,37 @@ from lxml import html
 BVG_URL = 'http://mobil.bvg.de/Fahrinfo/bin/stboard.bin/dox?'
 
 
+def create_products_filter(select='', ignore=''):
+    ''' Returns a bit-mask to select or ignore certain types of transport.
+
+    Types can be separated by comma (e.g. 'U,S') or without (e.g. 'US'). If at least one
+    type is selected not specified types are ignored, otherwiese not specified types are
+    selected. Selected outvotes ingored if a type is in both.
+
+    bit-masks: 11111101 = Regional, 11111011 = Fern, 11101111 = Bus, 11011111 = Tram,
+    10111111 = UBahn, 01111111 = SBahn
+
+    ::
+
+        >>> create_products_filter()
+        '11111111'
+        >>> create_products_filter(select='U,S,R')
+        '11000100'
+        >>> create_products_filter(ignore='U,S')
+        '00111111'
+        >>> create_products_filter(select='US', ignore='SBT')
+        '11000000'
+    '''
+
+    def value(type):
+        if type not in select and type in ignore:
+            return '0'
+        if type in select:
+            return '1'
+        return '1' if not select else '0'
+    return ''.join(value(t) for t in 'SUTBIR__')
+
+
 def request_station_ids(station_name):
     ''' Requests the station ids for the provided station name.
 
@@ -43,13 +74,18 @@ def request_station_ids(station_name):
     return ((station_name, station_id),), True
 
 
-def request_departures(station_id, limit):
+def request_departures(station_id, limit, products_filter=''):
     ''' Requests the departure times for the provided station id.
 
     Return a tuple (data, ok). Data holdes the <departures> with time, line and
     destination. The status flag can be True or False if there are network problems.
     '''
+
     payload = {'input': station_id, 'maxJourneys': limit, 'start': 'yes'}
+
+    if products_filter:
+        payload['productsFilter'] = products_filter
+
     r = requests.get(BVG_URL, params=payload)
 
     # network
@@ -71,7 +107,15 @@ def show_usage():
           'arguments:\n'
           '--station NAME       name of your departure station\n\n'
           'optional arguments:\n'
-          '--limit N            limit the number of responses (default 10)')
+          '--limit N            limit the number of responses (default 10)\n\n'
+          '--select types       select types of transport (e.g. U,T)\n'
+          '--ignore types       ignore types of transport (e.g. R,I,B)\n'
+          '                     types: U - underground (U-Bahn)\n'
+          '                            S - suburban railway (S-Bahn)\n'
+          '                            T - tram\n'
+          '                            B - bus\n'
+          '                            R - regional railway\n'
+          '                            I - long-distance railway')
 
 
 if __name__ == '__main__':
@@ -81,10 +125,23 @@ if __name__ == '__main__':
         show_usage()
         sys.exit(1)
 
-    limit = '10'
+    limit_arg, select_arg, ignore_arg = '10', '', ''
 
-    if len(sys.argv) >= 5 and sys.argv[3] == '--limit':
-        limit = sys.argv[4]
+    if '--limit' in sys.argv:
+        pos = sys.argv.index('--limit')
+        if len(sys.argv) >= pos + 2:
+            limit = sys.argv[pos + 1]
+
+    if '--select' in sys.argv:
+        pos = sys.argv.index('--select')
+        select_arg = sys.argv[pos + 1]
+
+    if '--ignore' in sys.argv:
+        pos = sys.argv.index('--ignore')
+        ignore_arg = sys.argv[pos + 1]
+
+    if '--verbose' in sys.argv:
+        print('info: limit_arg', limit_arg, 'select_arg', select_arg, 'ignore_arg', ignore_arg)
 
     stations, ok = request_station_ids(sys.argv[2])
 
@@ -106,7 +163,8 @@ if __name__ == '__main__':
                 break
 
     station_name, station_id = stations[station_id]
-    departures, ok = request_departures(station_id, limit)
+    products_filter = create_products_filter(select_arg, ignore_arg)
+    departures, ok = request_departures(station_id, limit_arg, products_filter)
 
     if not ok:
         print('Check your network. BVG website migth also be down.')
