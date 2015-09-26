@@ -7,6 +7,17 @@ from lxml import html
 BVG_URL = 'http://mobil.bvg.de/Fahrinfo/bin/stboard.bin/dox?'
 
 
+def get_argument(argument_name, default=''):
+    ''' Return value for given argument; default if argument not specified. '''
+
+    argument = default
+    if argument_name in sys.argv:
+        pos = sys.argv.index(argument_name)
+        if len(sys.argv) >= pos + 2:
+            argument = sys.argv[pos + 1]
+    return argument
+
+
 def create_products_filter(select='', ignore=''):
     ''' Returns a bit-mask to select or ignore certain types of transport.
 
@@ -121,24 +132,15 @@ def show_usage():
 if __name__ == '__main__':
     ''' Rudimentary CLI capabilities ...'''
 
+    # TODO: investigate cli packages
     if len(sys.argv) < 3 or sys.argv[1] != '--station':
         show_usage()
         sys.exit(1)
 
-    limit_arg, select_arg, ignore_arg = '10', '', ''
+    limit_arg = get_argument('limit', '10')
+    select_arg = get_argument('select')
+    ignore_arg = get_argument('ignore')
 
-    if '--limit' in sys.argv:
-        pos = sys.argv.index('--limit')
-        if len(sys.argv) >= pos + 2:
-            limit = sys.argv[pos + 1]
-
-    if '--select' in sys.argv:
-        pos = sys.argv.index('--select')
-        select_arg = sys.argv[pos + 1]
-
-    if '--ignore' in sys.argv:
-        pos = sys.argv.index('--ignore')
-        ignore_arg = sys.argv[pos + 1]
 
     if '--verbose' in sys.argv:
         print('info: limit_arg', limit_arg, 'select_arg', select_arg, 'ignore_arg', ignore_arg)
