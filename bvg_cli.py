@@ -11,6 +11,7 @@ def get_argument(argument_name, default=''):
     ''' Return value for given argument; default if argument not specified. '''
 
     argument = default
+    argument_name = '--' + argument_name
     if argument_name in sys.argv:
         pos = sys.argv.index(argument_name)
         if len(sys.argv) >= pos + 2:
@@ -65,6 +66,9 @@ def request_station_ids(station_name):
     if r.status_code != 200:
         return None, False
 
+    if '--verbose' in sys.argv:
+        print('info: response for', r.request.url)
+
     tree = html.fromstring(r.content)
 
     data = []
@@ -103,6 +107,9 @@ def request_departures(station_id, limit, products_filter=''):
     if r.status_code != 200:
         return None, False
 
+    if '--verbose' in sys.argv:
+        print('info: response for', r.request.url)
+
     tree = html.fromstring(r.content)
 
     data = []
@@ -126,7 +133,8 @@ def show_usage():
           '                            T - tram\n'
           '                            B - bus\n'
           '                            R - regional railway\n'
-          '                            I - long-distance railway')
+          '                            I - long-distance railway\n\n'
+          '--verbose            print info messages (debug)')
 
 
 if __name__ == '__main__':
@@ -141,9 +149,9 @@ if __name__ == '__main__':
     select_arg = get_argument('select')
     ignore_arg = get_argument('ignore')
 
-
     if '--verbose' in sys.argv:
-        print('info: limit_arg', limit_arg, 'select_arg', select_arg, 'ignore_arg', ignore_arg)
+        print('info: limit_arg', limit_arg, 'select_arg', select_arg,
+              'ignore_arg', ignore_arg)
 
     stations, ok = request_station_ids(sys.argv[2])
 
@@ -158,7 +166,7 @@ if __name__ == '__main__':
             print('[{}] {}'.format(i, name))
 
         while 'do-loop':
-            user_response = input('Which station [1-{}] did you mean? '.format(
+            user_response = input('\nWhich station [1-{}] did you mean? '.format(
                 len(stations)))
             if user_response.isdigit and 0 < int(user_response) <= len(stations):
                 station_id = int(user_response) - 1
