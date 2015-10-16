@@ -1,9 +1,10 @@
 import sys
 import requests
+from requests.exceptions import Timeout
 
 from lxml import html
 
-
+TIMEOUT_TIME = 5
 BVG_URL = 'http://mobil.bvg.de/Fahrinfo/bin/stboard.bin/dox?'
 
 
@@ -59,8 +60,10 @@ def request_station_ids(station_name):
     Return a tuple (data, ok). Data holdes the <stations> with their name
     and id. The status flag can be True or False if there are network problems.
     '''
-
-    r = requests.get(BVG_URL, data={'input': station_name})
+    try:
+        r = requests.get(BVG_URL, data={'input': station_name}, timeout=TIMEOUT_TIME)
+    except Timeout:
+        return None, False
 
     # network
     if r.status_code != 200:
@@ -101,7 +104,10 @@ def request_departures(station_id, limit, products_filter=''):
     if products_filter:
         payload['productsFilter'] = products_filter
 
-    r = requests.get(BVG_URL, params=payload)
+    try:
+        r = requests.get(BVG_URL, params=payload, timeout=TIMEOUT_TIME)
+    except Timeout:
+        return None, False
 
     # network
     if r.status_code != 200:
@@ -156,7 +162,7 @@ if __name__ == '__main__':
     stations, ok = request_station_ids(sys.argv[2])
 
     if not ok:
-        print('Check your network. BVG website migth also be down.')
+        print('Check your network. BVG website migth also be down.', file=sys.stderr)
         sys.exit(1)
 
     station_id = 0
