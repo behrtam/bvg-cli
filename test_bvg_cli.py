@@ -5,6 +5,12 @@ from bvg_cli import request_departures, request_station_ids, create_products_fil
 
 from html_dumps import DEPARTURE_HTML, STATION_HTML
 
+from requests.exceptions import Timeout
+
+
+def mock_timeout_callback(request, uri, headers):
+    raise Timeout('Request timed out.')
+
 
 @httpretty.activate
 def test_request_station_server_error():
@@ -14,8 +20,22 @@ def test_request_station_server_error():
 
 
 @httpretty.activate
+def test_request_station_timeout():
+    httpretty.register_uri(httpretty.GET, BVG_URL, body=mock_timeout_callback)
+    _, ok = request_station_ids('any station')
+    assert ok is False
+
+
+@httpretty.activate
 def test_request_departures_server_error():
     httpretty.register_uri(httpretty.GET, BVG_URL, status=500)
+    _, ok = request_departures('any id', limit=10)
+    assert ok is False
+
+
+@httpretty.activate
+def test_request_departures_timeout():
+    httpretty.register_uri(httpretty.GET, BVG_URL, body=mock_timeout_callback)
     _, ok = request_departures('any id', limit=10)
     assert ok is False
 
