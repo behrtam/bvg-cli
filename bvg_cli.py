@@ -174,7 +174,7 @@ if __name__ == '__main__':
         while 'do-loop':
             user_response = input('\nWhich station [1-{}] did you mean? '.format(
                 len(stations)))
-            if user_response.isdigit and 0 < int(user_response) <= len(stations):
+            if user_response.isdigit() and 0 < int(user_response) <= len(stations):
                 station_id = int(user_response) - 1
                 break
 
@@ -183,7 +183,8 @@ if __name__ == '__main__':
     departures, ok = request_departures(station_id, limit_arg, products_filter)
 
     if not ok:
-        print('Check your network. BVG website migth also be down.')
+        print('Check your network. BVG website migth also be down.', file=sys.stderr)
+        sys.exit(1)
 
     print('\n# Next departures at', station_name)
     print('{:8}{:10}{}'.format('Time', 'Line', 'Destination'))
