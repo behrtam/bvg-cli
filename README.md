@@ -9,21 +9,27 @@ It is written in Python and makes use of some excellent packages provided by its
 * limit the number of departure times
 * filter the types of transport (select/ignore)
 
+## Installation
+Quick and dirty way to install the cli until there is `pip` or `brew` support.
+```
+$ wget -qO- https://raw.githubusercontent.com/behrtam/bvg-cli/master/install.sh | sh
+```
+
 ## Usage
 ```
-$ ./bvg_cli.py --station NAME [--limit N] [--select types] [--ignore types]
+$ bvg_cli --station NAME [--limit N] [--select types] [--ignore types]
 ```
 
 ### Examples
 ```
-$ ./bvg_cli.py --station Alexanderplatz
+$ bvg_cli --station Alexanderplatz
 ```
 
 This request will only show departures for underground (U-Bahn) and suburban railway (S-Bahn).
 ```
-$ ./bvg_cli.py --station Alexanderplatz --select S,U
+$ bvg_cli --station Alexanderplatz --select S,U
 ```
 This request will show the next 5 departures skipping buses and regional railways.
 ```
-$ ./bvg_cli.py --station Alexanderplatz --ignore B,R --limit 5
+$ bvg_cli --station Alexanderplatz --ignore B,R --limit 5
 ```
