@@ -1,8 +1,32 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+bvg-cli is a command line tool for the public transport of Berlin.
+It provides a simple way to get the latest departure times for the stations of
+subway, bus, tram and urban rail system.
+
+https://github.com/behrtam/bvg-cli
+
+Copyright (c) 2015 Tammo Behrends
+
+License: MIT (see LICENSE.md for details)
+'''
+
+from __future__ import print_function
+
 import sys
 import requests
-from requests.exceptions import Timeout
 
+from requests.exceptions import Timeout
 from lxml import html
+
+
+# python 2 compabilaty
+if sys.version_info.major == 2:
+    input = raw_input
+    reload(sys)
+    sys.setdefaultencoding('utf8')
+
 
 TIMEOUT_TIME = 5
 BVG_URL = 'http://mobil.bvg.de/Fahrinfo/bin/stboard.bin/dox?'
